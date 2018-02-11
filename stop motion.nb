@@ -1,0 +1,858 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='WolframEngine 11.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       160,          7]
+NotebookDataLength[     32471,        850]
+NotebookOptionsPosition[     26186,        735]
+NotebookOutlinePosition[     26545,        751]
+CellTagsIndexPosition[     26502,        748]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Mathematica stop motion", "Title",
+ CellChangeTimes->{{3.727266373660433*^9, 
+  3.7272663761742373`*^9}},ExpressionUUID->"82e2f5ab-1e2e-4187-9703-\
+46de86478c9c"],
+
+Cell[CellGroupData[{
+
+Cell["setup", "Section",
+ CellChangeTimes->{{3.7272711410564013`*^9, 
+  3.7272711416500607`*^9}},ExpressionUUID->"20db174c-400f-49f7-bfb3-\
+9e4b2db57650"],
+
+Cell["\<\
+This presumes that you have successfully installed gphoto2 and its associated \
+libraries. You can test that the program is working and your camera is \
+correctly connected and turned on with the following command:\
+\>", "Text",
+ CellChangeTimes->{{3.727270123598089*^9, 
+  3.727270160683901*^9}},ExpressionUUID->"330a1381-2275-4d01-9327-\
+bfeb7dbeb040"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"RunProcess", "[", 
+  RowBox[{"{", 
+   RowBox[{"\"\</usr/local/bin/gphoto2\>\"", ",", "\"\<--summary\>\""}], 
+   "}"}], "]"}]], "Input",
+ CellChangeTimes->{{3.727265948398802*^9, 3.727265952034939*^9}, {
+  3.727266004300086*^9, 3.7272660190183268`*^9}, {3.727266053050322*^9, 
+  3.727266055012492*^9}},ExpressionUUID->"ad83186e-abee-49b7-938f-\
+b5fc2548d033"],
+
+Cell[BoxData[
+ RowBox[{"\[LeftAssociation]", 
+  RowBox[{
+   RowBox[{"\<\"ExitCode\"\>", "\[Rule]", "0"}], ",", 
+   RowBox[{"\<\"StandardOutput\"\>", 
+    "\[Rule]", "\<\"Camera summary:\\n\\nCamera identification:\\n  Model: \
+Canon:EOS 5D (normal mode)\\n  Owner: Stern\\n\\nPower status: on battery \
+(power OK)\\n\\nFlash disk information:\\n  Drive A:\\n    7,812,544 bytes \
+total\\n    6,914,240 bytes available\\n\\nTime: 2018-02-10 15:40:55 (host \
+time +0 seconds)\\n\\n\"\>"}], ",", 
+   RowBox[{"\<\"StandardError\"\>", 
+    "\[Rule]", "\<\"Detected a 'Canon:EOS 5D (normal mode)'.\\n\"\>"}]}], 
+  "\[RightAssociation]"}]], "Output",
+ CellChangeTimes->{
+  3.727266055464315*^9},ExpressionUUID->"796ee878-7f2d-4f8f-997b-\
+ae39f5cdcc15"]
+}, Open  ]],
+
+Cell["\<\
+If it\[CloseCurlyQuote]s not working, and you have a camera model that \
+gphoto2 is known to work with, you probably need to go to the command line \
+and kill any competing processes (basically, anything that shows up with the \
+word \[OpenCurlyQuote]gphoto\[CloseCurlyQuote] in it the task list.)
+
+I like to do all-day time-lapse videos with photos every minute or two, but \
+there are some applications in which you might want the images taken more \
+rapidly than that. The lower bound on spacing depends on you camera, and \
+whether or not you\[CloseCurlyQuote]re having it focus before each shot, \
+whether you\[CloseCurlyQuote]re downloading the images to the Pi, and other \
+variables. The closest spacing with the setup I\[CloseCurlyQuote]m using is \
+about 7.6 seconds, as shown below.\
+\>", "Text",
+ CellChangeTimes->{{3.727270174207569*^9, 3.727270272262846*^9}, {
+  3.727270367836989*^9, 3.727270408523357*^9}, {3.727279005355474*^9, 
+  3.727279030273089*^9}, {3.727279063416923*^9, 
+  3.727279089461664*^9}},ExpressionUUID->"8a262353-aa13-4371-ae75-\
+9360b5dfaecb"],
+
+Cell[BoxData[
+ RowBox[{"AbsoluteTiming", "[", 
+  RowBox[{
+   RowBox[{"RunProcess", "[", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\</usr/local/bin/gphoto2\>\"", ",", 
+      "\"\<--capture-image-and-download\>\""}], "}"}], "]"}], ";"}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.727270415238912*^9, 3.727270421604905*^9}},
+ CellLabel->"In[1]:=",ExpressionUUID->"eca3b343-2d56-4df3-a2ac-d224f4809a15"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["get photos", "Section",
+ CellChangeTimes->{{3.7272711515951767`*^9, 
+  3.7272711532433567`*^9}},ExpressionUUID->"54dd8562-6557-4036-a021-\
+a1f7bf201589"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"SetDirectory", "[", 
+  RowBox[{"FileNameJoin", "[", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"NotebookDirectory", "[", "]"}], ",", "\"\<pix\>\""}], "}"}], 
+   "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.727270437490888*^9, 3.72727045753576*^9}},
+ CellLabel->"In[1]:=",ExpressionUUID->"0cbde44f-e5c4-43e6-86c5-a12c31aeec4e"],
+
+Cell[BoxData["\<\"/Users/stern/Box Sync/programming/mathematica/\[Pi] \
+stopmotion (ms@wheels.org)/pix\"\>"], "Output",
+ CellChangeTimes->{3.72727045858479*^9, 3.727270960601604*^9, 
+  3.727280600644061*^9},
+ CellLabel->"Out[1]=",ExpressionUUID->"7f0513ed-0d6e-4650-bbee-5c495efd4c3b"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Table", "[", 
+  RowBox[{
+   RowBox[{"RunProcess", "[", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\</usr/local/bin/gphoto2\>\"", ",", 
+      "\"\<--capture-image-and-download\>\""}], "}"}], "]"}], ",", "5"}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.727266282566731*^9, 3.727266314969708*^9}, {
+  3.727270470135045*^9, 
+  3.727270479002095*^9}},ExpressionUUID->"8d72f3bd-67ae-4963-8c5c-\
+d969a645cce3"],
+
+Cell[BoxData[
+ RowBox[{"\[LeftAssociation]", 
+  RowBox[{
+   RowBox[{"\<\"ExitCode\"\>", "\[Rule]", "0"}], ",", 
+   RowBox[{"\<\"StandardOutput\"\>", 
+    "\[Rule]", "\<\"New file is in location /DCIM/101EOS5D/IMG_6851.CR2 on \
+the camera\\nSaving file as IMG_6851.CR2\\nDeleting file \
+/DCIM/101EOS5D/IMG_6851.CR2 on the camera\\n\"\>"}], ",", 
+   RowBox[{"\<\"StandardError\"\>", 
+    "\[Rule]", "\<\"Detected a 'Canon:EOS 5D (normal mode)'.\\nDownloading \
+'IMG_6851.CR2' from folder '/DCIM/101EOS5D'...\\n\\n*** Error ***             \
+ \\ncanon_usb_set_file_attributes: canon_usb_dialogue failed\\nDeleting \
+'IMG_6851.CR2' from folder '/DCIM/101EOS5D'...\\n\"\>"}]}], 
+  "\[RightAssociation]"}]], "Output",
+ CellChangeTimes->{3.727266323371052*^9, 
+  3.727266363308544*^9},ExpressionUUID->"2b32b659-1d46-4724-aecf-\
+98258d29a503"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["simple animation", "Section",
+ CellChangeTimes->{{3.72727115893226*^9, 
+  3.7272711607552357`*^9}},ExpressionUUID->"ee10fb3f-ded2-4eab-9f30-\
+701ece0a3758"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"pix", "=", 
+    RowBox[{"Import", "/@", 
+     RowBox[{"FileNames", "[", "\"\<*jpg\>\"", "]"}]}]}], ";"}], 
+  RowBox[{"(*", " ", 
+   RowBox[{
+   "presumes", " ", "that", " ", "only", " ", "the", " ", "frames", " ", 
+    "you", " ", "want", " ", "are", " ", "in", " ", "the", " ", "pix", " ", 
+    "directory", " ", "and", " ", "that", " ", "they", " ", "are", " ", 
+    "correctly", " ", "ordered", " ", "by", " ", "filename"}], " ", 
+   "*)"}]}]], "Input",
+ CellChangeTimes->{{3.727270491195776*^9, 3.727270516865644*^9}, {
+  3.727270764635116*^9, 3.72727079906102*^9}, {3.72727874120329*^9, 
+  3.727278758944466*^9}},
+ CellLabel->"In[2]:=",ExpressionUUID->"e91063c9-ce54-4c54-8fd9-30fa56bf71e9"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Export", "[", 
+  RowBox[{
+   RowBox[{"FileNameJoin", "[", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"NotebookDirectory", "[", "]"}], ",", 
+      "\"\<gif test 1.gif\>\""}], "}"}], "]"}], ",", "pix", ",", 
+   RowBox[{"\"\<DisplayDurations\>\"", "\[Rule]", 
+    RowBox[{"Table", "[", 
+     RowBox[{
+      RowBox[{"1", "/", "5"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"Length", "[", "pix", "]"}], "}"}]}], "]"}]}]}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.727270633485178*^9, 3.7272706586875343`*^9}, {
+  3.72727091435747*^9, 3.727270954596744*^9}, {3.72727103657306*^9, 
+  3.7272710629165497`*^9}},
+ CellLabel->"In[21]:=",ExpressionUUID->"246b27b5-3210-457f-8e12-d4f78c1dbf2c"],
+
+Cell[BoxData["\<\"/Users/stern/Box Sync/programming/mathematica/\[Pi] \
+stopmotion (ms@wheels.org)/gif test 1.gif\"\>"], "Output",
+ CellChangeTimes->{3.72727067378915*^9, 3.727270995665262*^9, 
+  3.727271075797814*^9, 3.727278791898068*^9},
+ CellLabel->"Out[21]=",ExpressionUUID->"6d65a5fe-d13f-4635-9418-8bd45e5d4942"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", 
+   RowBox[{"ListAnimate", "[", 
+    RowBox[{"pix", ",", 
+     RowBox[{"ImageSize", "\[Rule]", "Medium"}]}], "]"}], "*)"}], 
+  RowBox[{"(*", 
+   RowBox[{"View", " ", "the", " ", 
+    RowBox[{"animation", ".", " ", "This"}], " ", "is", " ", "slow", " ", 
+    "on", " ", "Pi", " ", "and", " ", "takes", " ", "a", " ", "lot", " ", 
+    "of", " ", "memory", " ", "in", " ", 
+    RowBox[{"Mathematica", "."}]}], "*)"}]}]], "Input",
+ CellChangeTimes->{{3.727280448633795*^9, 3.7272804613831244`*^9}, {
+  3.727281212971089*^9, 
+  3.7272812361949244`*^9}},ExpressionUUID->"e4854be1-a034-492d-8a88-\
+df1ff1a76850"],
+
+Cell[TextData[{
+ "output can be seen at ",
+ ButtonBox["https://youtu.be/7W3DPj5UHas",
+  BaseStyle->"Hyperlink",
+  ButtonData->{
+    URL["https://youtu.be/7W3DPj5UHas"], None},
+  ButtonNote->"https://youtu.be/7W3DPj5UHas"]
+}], "Text",
+ CellChangeTimes->{
+  3.727289981247875*^9, {3.727291084006077*^9, 3.727291094439842*^9}, 
+   3.727291347803527*^9},ExpressionUUID->"b83d7e59-9533-414b-98b1-\
+addbb418156b"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["effects", "Section",
+ CellChangeTimes->{{3.727271134143219*^9, 
+  3.727271134852476*^9}},ExpressionUUID->"89769158-cdff-445b-b166-\
+154c13ad7c99"],
+
+Cell[CellGroupData[{
+
+Cell["Photoshop-type effects are built-in", "Subsection",
+ CellChangeTimes->{{3.727271613021757*^9, 
+  3.7272716197661552`*^9}},ExpressionUUID->"947ce312-b5ee-4c54-a0f1-\
+c665ff3a945e"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"pixCh", "=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"ImageEffect", "[", 
+      RowBox[{"#", ",", "\"\<Charcoal\>\""}], "]"}], "&"}], "/@", "pix"}]}], 
+  ";"}]], "Input",
+ CellChangeTimes->{{3.7272711912946978`*^9, 3.72727120990775*^9}, {
+  3.7272714173671207`*^9, 3.7272714262983093`*^9}},
+ CellLabel->"In[8]:=",ExpressionUUID->"67bb7fe0-251e-4e32-9aec-9c07b5e7f827"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Export", "[", 
+  RowBox[{
+   RowBox[{"FileNameJoin", "[", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"NotebookDirectory", "[", "]"}], ",", 
+      "\"\<gif test 2.gif\>\""}], "}"}], "]"}], ",", "pixCh", ",", 
+   RowBox[{"\"\<DisplayDurations\>\"", "\[Rule]", 
+    RowBox[{"Table", "[", 
+     RowBox[{
+      RowBox[{"1", "/", "5"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"Length", "[", "pix", "]"}], "}"}]}], "]"}]}]}], 
+  "]"}]], "Input",
+ CellChangeTimes->{
+  3.727271244479197*^9, {3.72727130360139*^9, 3.727271303955699*^9}},
+ CellLabel->"In[23]:=",ExpressionUUID->"6371d0c8-19fe-4b1a-9d64-237229681fd1"],
+
+Cell[BoxData["\<\"/Users/stern/Box Sync/programming/mathematica/\[Pi] \
+stopmotion (ms@wheels.org)/gif test 2.gif\"\>"], "Output",
+ CellChangeTimes->{3.727271259673901*^9, 3.7272713070009403`*^9, 
+  3.727278804347186*^9},
+ CellLabel->"Out[23]=",ExpressionUUID->"2f9543f3-d2fe-4c6e-b397-ff4337a81657"]
+}, Open  ]],
+
+Cell[TextData[{
+ "output can be seen at ",
+ ButtonBox["https://youtu.be/AoYnODt8G-Y",
+  BaseStyle->"Hyperlink",
+  ButtonData->{
+    URL["https://youtu.be/AoYnODt8G-Y"], None},
+  ButtonNote->"https://youtu.be/AoYnODt8G-Y"]
+}], "Text",
+ CellChangeTimes->{{3.7272903480799627`*^9, 3.7272903826256657`*^9}, {
+  3.7272913435230417`*^9, 
+  3.727291344567155*^9}},ExpressionUUID->"d01eca14-f23a-4cbb-8c21-\
+9fa70224d6af"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["You can also create your own from the math", "Subsection",
+ CellChangeTimes->{{3.727271623499547*^9, 
+  3.727271634829893*^9}},ExpressionUUID->"fd1e7299-f52f-4a67-9718-\
+9bd78977fff4"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"pixEdge", "=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"ImageConvolve", "[", 
+      RowBox[{"#", ",", 
+       TagBox[
+        RowBox[{"(", "\[NoBreak]", GridBox[{
+           {
+            RowBox[{"-", "1"}], "0", "1"},
+           {
+            RowBox[{"-", "2"}], "0", "2"},
+           {
+            RowBox[{"-", "1"}], "0", "1"}
+          },
+          
+          GridBoxAlignment->{
+           "Columns" -> {{Center}}, "ColumnsIndexed" -> {}, 
+            "Rows" -> {{Baseline}}, "RowsIndexed" -> {}},
+          GridBoxSpacings->{"Columns" -> {
+              Offset[0.27999999999999997`], {
+               Offset[0.7]}, 
+              Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+              Offset[0.2], {
+               Offset[0.4]}, 
+              Offset[0.2]}, "RowsIndexed" -> {}}], "\[NoBreak]", ")"}],
+        Function[BoxForm`e$, 
+         MatrixForm[BoxForm`e$]]]}], "]"}], "&"}], "/@", "pix"}]}], 
+  ";"}]], "Input",
+ CellChangeTimes->{{3.727271434035655*^9, 3.727271458208658*^9}},
+ CellLabel->"In[10]:=",ExpressionUUID->"0513c616-9b44-439b-a8a7-a5f4e3cea1d8"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Export", "[", 
+  RowBox[{
+   RowBox[{"FileNameJoin", "[", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"NotebookDirectory", "[", "]"}], ",", 
+      "\"\<gif test 3.gif\>\""}], "}"}], "]"}], ",", "pixEdge", ",", 
+   RowBox[{"\"\<DisplayDurations\>\"", "\[Rule]", 
+    RowBox[{"Table", "[", 
+     RowBox[{
+      RowBox[{"1", "/", "5"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"Length", "[", "pix", "]"}], "}"}]}], "]"}]}]}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.727271468765682*^9, 3.727271474117251*^9}},
+ CellLabel->"In[25]:=",ExpressionUUID->"4b2d7de4-d679-4167-b4c3-8acc2c2f3f62"],
+
+Cell[BoxData["\<\"/Users/stern/Box Sync/programming/mathematica/\[Pi] \
+stopmotion (ms@wheels.org)/gif test 3.gif\"\>"], "Output",
+ CellChangeTimes->{3.7272714860126762`*^9, 3.72727884026414*^9},
+ CellLabel->"Out[25]=",ExpressionUUID->"0737b4e4-b1d8-43c8-9395-6e1c0b85868a"]
+}, Open  ]],
+
+Cell[TextData[{
+ "output can be seen at ",
+ ButtonBox["https://youtu.be/HYmzaxf4Oe4",
+  BaseStyle->"Hyperlink",
+  ButtonData->{
+    URL["https://youtu.be/HYmzaxf4Oe4"], None},
+  ButtonNote->"https://youtu.be/HYmzaxf4Oe4"]
+}], "Text",
+ CellChangeTimes->{{3.7272906537278347`*^9, 3.727290677564393*^9}, {
+  3.727291326832559*^9, 
+  3.7272913332498207`*^9}},ExpressionUUID->"c3efb9f3-dd2c-438d-955a-\
+c7d35dd2d174"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["And take advantage of Mathematica\[CloseCurlyQuote]s considerable AI \
+prowess", "Subsection",
+ CellChangeTimes->{{3.7272716386952143`*^9, 
+  3.727271649342145*^9}},ExpressionUUID->"0fae1c0e-6c19-4ba7-ba31-\
+701bfbabac13"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"highlightFace", "[", "img_Image", "]"}], ":=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", "bounds", "}"}], ",", 
+     RowBox[{
+      RowBox[{"bounds", "=", 
+       RowBox[{"FindFaces", "[", 
+        RowBox[{"img", ",", 
+         RowBox[{"{", 
+          RowBox[{"300", ",", "700"}], "}"}]}], "]"}]}], ";", 
+      RowBox[{"HighlightImage", "[", 
+       RowBox[{"img", ",", "bounds", ",", "\"\<Desaturate\>\""}], "]"}]}]}], 
+    "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{
+  3.727279383501604*^9, {3.727279417019524*^9, 3.727279444248433*^9}, {
+   3.727279584501816*^9, 3.7272795868376827`*^9}, {3.727279661220025*^9, 
+   3.7272796767748632`*^9}, {3.727279738332748*^9, 3.727279915464828*^9}, {
+   3.727279949094953*^9, 3.7272799494310713`*^9}, 3.727280475491227*^9},
+ CellLabel->"In[12]:=",ExpressionUUID->"cb22b8dd-e3d4-4d2f-88e6-c99e528917a6"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"pixFaces", "=", 
+   RowBox[{"highlightFace", "/@", "pix"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.727271671109116*^9, 3.727271671736059*^9}, 
+   3.727271788104417*^9, 3.7272794585323343`*^9, {3.727280477257579*^9, 
+   3.7272805012512007`*^9}},
+ CellLabel->"In[13]:=",ExpressionUUID->"b8b8c499-63be-453c-ba07-a3784c0000b2"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "FindFaces","oldsize",
+   "\"The syntax FindFaces[image, {min, max}] is obsolete and will not be \
+supported in future versions of the Wolfram Language.\"",2,13,1,
+   32041884906370054289,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{3.7272799808794413`*^9, 3.727290329509948*^9},
+ CellLabel->
+  "During evaluation of \
+In[13]:=",ExpressionUUID->"61bc0a1d-4e68-4691-af26-185278116d36"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "FindFaces","oldsize",
+   "\"The syntax FindFaces[image, {min, max}] is obsolete and will not be \
+supported in future versions of the Wolfram Language.\"",2,13,2,
+   32041884906370054289,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{3.7272799808794413`*^9, 3.727290331215046*^9},
+ CellLabel->
+  "During evaluation of \
+In[13]:=",ExpressionUUID->"d2c74e5d-c0fb-4f5c-b14a-65dc01bf4c07"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "FindFaces","oldsize",
+   "\"The syntax FindFaces[image, {min, max}] is obsolete and will not be \
+supported in future versions of the Wolfram Language.\"",2,13,3,
+   32041884906370054289,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{3.7272799808794413`*^9, 3.727290335449957*^9},
+ CellLabel->
+  "During evaluation of \
+In[13]:=",ExpressionUUID->"484f6af5-3b87-4144-a282-92124765969b"],
+
+Cell[BoxData[
+ TemplateBox[{
+  "General","stop",
+   "\"Further output of \\!\\(\\*StyleBox[RowBox[{\\\"FindFaces\\\", \\\"::\\\
+\", \\\"oldsize\\\"}], \\\"MessageName\\\"]\\) will be suppressed during this \
+calculation.\"",2,13,4,32041884906370054289,"Local"},
+  "MessageTemplate"]], "Message", "MSG",
+ CellChangeTimes->{3.7272799808794413`*^9, 3.7272903354752073`*^9},
+ CellLabel->
+  "During evaluation of \
+In[13]:=",ExpressionUUID->"544a5645-3aa3-430c-bc1a-56ec888e96db"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Export", "[", 
+  RowBox[{
+   RowBox[{"FileNameJoin", "[", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"NotebookDirectory", "[", "]"}], ",", 
+      "\"\<gif test 4.gif\>\""}], "}"}], "]"}], ",", "pixFaces", ",", 
+   RowBox[{"\"\<DisplayDurations\>\"", "\[Rule]", 
+    RowBox[{"Table", "[", 
+     RowBox[{
+      RowBox[{"1", "/", "5"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"Length", "[", "pix", "]"}], "}"}]}], "]"}]}]}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.727271801237193*^9, 3.72727180317463*^9}},
+ CellLabel->"In[67]:=",ExpressionUUID->"805bef66-746e-40d0-b173-620173a7c68a"],
+
+Cell[BoxData["\<\"/Users/stern/Box Sync/programming/mathematica/\[Pi] \
+stopmotion (ms@wheels.org)/gif test 4.gif\"\>"], "Output",
+ CellChangeTimes->{3.727271921852723*^9, 3.727279013096146*^9, 
+  3.727280271729883*^9},
+ CellLabel->"Out[67]=",ExpressionUUID->"3c2a64cc-a323-4ef2-9629-35546e7d6480"]
+}, Open  ]],
+
+Cell[TextData[{
+ "output can be seen at ",
+ ButtonBox["https://youtu.be/9W3U3Mgl01s",
+  BaseStyle->"Hyperlink",
+  ButtonData->{
+    URL["https://youtu.be/9W3U3Mgl01s"], None},
+  ButtonNote->"https://youtu.be/9W3U3Mgl01s"]
+}], "Text",
+ CellChangeTimes->{{3.7272910388176327`*^9, 3.7272910694643373`*^9}, {
+  3.727291338920292*^9, 
+  3.727291340434637*^9}},ExpressionUUID->"ac5ace15-5bd2-4128-8d7f-\
+f46f323829da"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["viewing the output", "Section",
+ CellChangeTimes->{{3.727291103072599*^9, 3.727291108457549*^9}, {
+  3.727291373403295*^9, 
+  3.7272913751257153`*^9}},ExpressionUUID->"f74e6f32-e2c4-4f8c-8039-\
+e3db3d7aadc2"],
+
+Cell["\<\
+If your source images are large and you haven\[CloseCurlyQuote]t reduced \
+their size and/or quality, the animations will be very large in size and \
+perhaps impractical to view on your Raspberry Pi. If you want to try, you can \
+use the following:\
+\>", "Text",
+ CellChangeTimes->{{3.727291376896644*^9, 3.727291402148507*^9}, {
+  3.727291437221183*^9, 
+  3.727291499324067*^9}},ExpressionUUID->"1e8bd51a-e267-49c2-9e51-\
+a48c4fac232d"],
+
+Cell[CellGroupData[{
+
+Cell["viewing within mathematica", "Subsection",
+ CellChangeTimes->{{3.7272914207393436`*^9, 
+  3.727291425438409*^9}},ExpressionUUID->"5bb6a3cd-dace-4c87-9706-\
+1174f1562edd"],
+
+Cell[BoxData[
+ RowBox[{"ListAnimate", "[", "pix", "]"}]], "Input",
+ CellChangeTimes->{{3.727270527702083*^9, 3.727270550258564*^9}, {
+   3.727270615268125*^9, 3.727270629385482*^9}, 3.7272710998760767`*^9, 
+   3.727279184530839*^9, {3.727287689019977*^9, 3.727287697256981*^9}, 
+   3.727291360047563*^9, {3.727291505129073*^9, 
+   3.7272915068887568`*^9}},ExpressionUUID->"c32897f2-3808-41ca-b8a1-\
+ce08bd5c7a3d"],
+
+Cell[BoxData[
+ RowBox[{"ListAnimate", "[", "pixCh", "]"}]], "Input",
+ CellChangeTimes->{
+  3.7272915144608727`*^9},ExpressionUUID->"89a27110-46be-4bf3-9448-\
+63a178ce62a9"],
+
+Cell[BoxData[
+ RowBox[{"ListAnimate", "[", "pixEdge", "]"}]], "Input",
+ CellChangeTimes->{
+  3.727291525460908*^9},ExpressionUUID->"3f91202a-2511-4224-bcc7-\
+7d7b1a6f1a45"],
+
+Cell[BoxData[
+ RowBox[{"ListAnimate", "[", "pixFaces", "]"}]], "Input",
+ CellChangeTimes->{
+  3.727291531223784*^9},ExpressionUUID->"aa632dc5-1dd6-4958-a674-\
+7ba9df5ea4d5"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["exporting to youtube", "Subsection",
+ CellChangeTimes->{{3.727291537198379*^9, 
+  3.727291539133049*^9}},ExpressionUUID->"cdcfcaf6-7239-4315-b9e5-\
+6540dfca06e3"],
+
+Cell["\<\
+Mathematica prepares standard video formats at 30 frames/second, which is not \
+appropriate for these files. I run each frame three times before exporting.\
+\>", "Text",
+ CellChangeTimes->{{3.727291175193344*^9, 3.7272912017395687`*^9}, {
+  3.7272912338773003`*^9, 
+  3.727291245781355*^9}},ExpressionUUID->"bf0441c7-0c77-4f31-9ea6-\
+a6e1fdda2189"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+    RowBox[{"FileNameJoin", "[", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"NotebookDirectory", "[", "]"}], ",", 
+       "\"\<gif test 1.avi\>\""}], "}"}], "]"}], ",", 
+    RowBox[{"Flatten", "[", 
+     RowBox[{"Map", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"#", ",", "#", ",", "#"}], "}"}], "&"}], ",", "pix"}], "]"}],
+      "]"}]}], "]"}], " "}]], "Input",
+ CellChangeTimes->{{3.7272876678214827`*^9, 3.727287668311034*^9}, {
+   3.7272880271613007`*^9, 3.7272880725349007`*^9}, 3.727288310344473*^9, {
+   3.727288513546329*^9, 3.727288521105689*^9}, 3.727290411284046*^9, 
+   3.7272911620900803`*^9, {3.7272912254540462`*^9, 
+   3.72729125305431*^9}},ExpressionUUID->"b76b607c-a05d-4c5c-8c39-\
+03d68d2949e3"],
+
+Cell[BoxData["\<\"/Users/stern/Box Sync/programming/mathematica/\[Pi] \
+stopmotion (ms@wheels.org)/gif test 1.avi\"\>"], "Output",
+ CellChangeTimes->{3.727287697910845*^9, 3.727288165162085*^9, 
+  3.727288431657702*^9, 3.72728861077619*^9},
+ CellLabel->"Out[7]=",ExpressionUUID->"425a1e32-030c-4db4-8ded-f740933704f6"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+    RowBox[{"FileNameJoin", "[", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"NotebookDirectory", "[", "]"}], ",", 
+       "\"\<gif test 2.avi\>\""}], "}"}], "]"}], ",", 
+    RowBox[{"Flatten", "[", 
+     RowBox[{"Map", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"#", ",", "#", ",", "#"}], "}"}], "&"}], ",", "pixCh"}], 
+      "]"}], "]"}]}], "]"}], " "}]], "Input",
+ CellChangeTimes->{{3.7272876678214827`*^9, 3.727287668311034*^9}, {
+   3.7272880271613007`*^9, 3.7272880725349007`*^9}, 3.727288310344473*^9, {
+   3.727288513546329*^9, 3.727288521105689*^9}, {3.727290006209477*^9, 
+   3.72729001857458*^9}, 3.727290101217099*^9, 3.727290353246554*^9, {
+   3.72729114866322*^9, 3.727291165021472*^9}, 
+   3.727291257319846*^9},ExpressionUUID->"7d1ad413-a9e4-47d9-b624-\
+e63528c1d45f"],
+
+Cell[BoxData["\<\"/Users/stern/Box Sync/programming/mathematica/\[Pi] \
+stopmotion (ms@wheels.org)/gif test 2.avi\"\>"], "Output",
+ CellChangeTimes->{3.727287697910845*^9, 3.727288165162085*^9, 
+  3.727288431657702*^9, 3.72728861077619*^9, 3.727290220390402*^9},
+ CellLabel->"Out[9]=",ExpressionUUID->"4b53cf66-d64f-43d9-8341-74f97cebf07f"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Export", "[", 
+  RowBox[{
+   RowBox[{"FileNameJoin", "[", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"NotebookDirectory", "[", "]"}], ",", 
+      "\"\<gif test 3.avi\>\""}], "}"}], "]"}], ",", 
+   RowBox[{"Flatten", "[", 
+    RowBox[{"Map", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"#", ",", "#", ",", "#"}], "}"}], "&"}], ",", "pixEdge"}], 
+     "]"}], "]"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.7272876678214827`*^9, 3.727287668311034*^9}, {
+   3.7272880271613007`*^9, 3.7272880725349007`*^9}, 3.727288310344473*^9, {
+   3.727288513546329*^9, 3.727288521105689*^9}, 3.727290023947681*^9, {
+   3.727290103678595*^9, 3.727290119575795*^9}, 3.72729062991575*^9, {
+   3.727291153480809*^9, 3.727291168625761*^9}, 
+   3.727291260314599*^9},ExpressionUUID->"89ea6a5f-a8a8-428f-8108-\
+de822e783f87"],
+
+Cell[BoxData["\<\"/Users/stern/Box Sync/programming/mathematica/\[Pi] \
+stopmotion (ms@wheels.org)/gif test 3.avi\"\>"], "Output",
+ CellChangeTimes->{3.727287697910845*^9, 3.727288165162085*^9, 
+  3.727288431657702*^9, 3.72728861077619*^9, 3.727290329229479*^9},
+ CellLabel->"Out[11]=",ExpressionUUID->"46b69ec2-dd4f-4548-81be-9c50191a3808"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Export", "[", 
+  RowBox[{
+   RowBox[{"FileNameJoin", "[", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"NotebookDirectory", "[", "]"}], ",", 
+      "\"\<gif test 4.avi\>\""}], "}"}], "]"}], ",", 
+   RowBox[{"Flatten", "[", 
+    RowBox[{"Map", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"#", ",", "#", ",", "#"}], "}"}], "&"}], ",", "pixFaces"}], 
+     "]"}], "]"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.7272876678214827`*^9, 3.727287668311034*^9}, {
+   3.7272880271613007`*^9, 3.7272880725349007`*^9}, 3.727288310344473*^9, {
+   3.727288513546329*^9, 3.727288521105689*^9}, 3.727290026068964*^9, {
+   3.7272901061722097`*^9, 3.727290112209935*^9}, 3.727291156837682*^9, 
+   3.727291263334605*^9},ExpressionUUID->"517bd17b-a16b-493f-9df0-\
+65656334ca49"],
+
+Cell[BoxData["\<\"/Users/stern/Box Sync/programming/mathematica/\[Pi] \
+stopmotion (ms@wheels.org)/gif test 4.avi\"\>"], "Output",
+ CellChangeTimes->{3.727287697910845*^9, 3.727288165162085*^9, 
+  3.727288431657702*^9, 3.72728861077619*^9, 3.7272908963254843`*^9},
+ CellLabel->"Out[14]=",ExpressionUUID->"8e795574-2fc7-43d3-b0ce-1de769b70f37"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{1329, 1624},
+WindowMargins->{{221, Automatic}, {Automatic, 1}},
+FrontEndVersion->"11.3 for Mac OS X x86 (32-bit, 64-bit Kernel) (January 23, \
+2018)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[582, 22, 168, 3, 98, "Title",ExpressionUUID->"82e2f5ab-1e2e-4187-9703-46de86478c9c"],
+Cell[CellGroupData[{
+Cell[775, 29, 154, 3, 67, "Section",ExpressionUUID->"20db174c-400f-49f7-bfb3-9e4b2db57650"],
+Cell[932, 34, 364, 7, 58, "Text",ExpressionUUID->"330a1381-2275-4d01-9327-bfeb7dbeb040"],
+Cell[CellGroupData[{
+Cell[1321, 45, 382, 8, 30, "Input",ExpressionUUID->"ad83186e-abee-49b7-938f-b5fc2548d033"],
+Cell[1706, 55, 745, 15, 374, "Output",ExpressionUUID->"796ee878-7f2d-4f8f-997b-ae39f5cdcc15"]
+}, Open  ]],
+Cell[2466, 73, 1087, 18, 150, "Text",ExpressionUUID->"8a262353-aa13-4371-ae75-9360b5dfaecb"],
+Cell[3556, 93, 398, 10, 30, "Input",ExpressionUUID->"eca3b343-2d56-4df3-a2ac-d224f4809a15"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3991, 108, 159, 3, 67, "Section",ExpressionUUID->"54dd8562-6557-4036-a021-a1f7bf201589"],
+Cell[CellGroupData[{
+Cell[4175, 115, 352, 8, 30, "Input",ExpressionUUID->"0cbde44f-e5c4-43e6-86c5-a12c31aeec4e"],
+Cell[4530, 125, 285, 4, 34, "Output",ExpressionUUID->"7f0513ed-0d6e-4650-bbee-5c495efd4c3b"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4852, 134, 425, 12, 30, "Input",ExpressionUUID->"8d72f3bd-67ae-4963-8c5c-d969a645cce3"],
+Cell[5280, 148, 835, 16, 227, "Output",ExpressionUUID->"2b32b659-1d46-4724-aecf-98258d29a503"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6164, 170, 162, 3, 67, "Section",ExpressionUUID->"ee10fb3f-ded2-4eab-9f30-701ece0a3758"],
+Cell[6329, 175, 743, 16, 52, "Input",ExpressionUUID->"e91063c9-ce54-4c54-8fd9-30fa56bf71e9"],
+Cell[CellGroupData[{
+Cell[7097, 195, 711, 18, 30, "Input",ExpressionUUID->"246b27b5-3210-457f-8e12-d4f78c1dbf2c"],
+Cell[7811, 215, 319, 4, 34, "Output",ExpressionUUID->"6d65a5fe-d13f-4635-9418-8bd45e5d4942"]
+}, Open  ]],
+Cell[8145, 222, 645, 15, 30, "Input",ExpressionUUID->"e4854be1-a034-492d-8a88-df1ff1a76850"],
+Cell[8793, 239, 407, 11, 35, "Text",ExpressionUUID->"b83d7e59-9533-414b-98b1-addbb418156b"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[9237, 255, 152, 3, 67, "Section",ExpressionUUID->"89769158-cdff-445b-b166-154c13ad7c99"],
+Cell[CellGroupData[{
+Cell[9414, 262, 185, 3, 54, "Subsection",ExpressionUUID->"947ce312-b5ee-4c54-a0f1-c665ff3a945e"],
+Cell[9602, 267, 402, 10, 30, "Input",ExpressionUUID->"67bb7fe0-251e-4e32-9aec-9c07b5e7f827"],
+Cell[CellGroupData[{
+Cell[10029, 281, 637, 17, 30, "Input",ExpressionUUID->"6371d0c8-19fe-4b1a-9d64-237229681fd1"],
+Cell[10669, 300, 300, 4, 34, "Output",ExpressionUUID->"2f9543f3-d2fe-4c6e-b397-ff4337a81657"]
+}, Open  ]],
+Cell[10984, 307, 414, 11, 35, "Text",ExpressionUUID->"d01eca14-f23a-4cbb-8c21-9fa70224d6af"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[11435, 323, 190, 3, 54, "Subsection",ExpressionUUID->"fd1e7299-f52f-4a67-9718-9bd78977fff4"],
+Cell[11628, 328, 1130, 31, 61, "Input",ExpressionUUID->"0513c616-9b44-439b-a8a7-a5f4e3cea1d8"],
+Cell[CellGroupData[{
+Cell[12783, 363, 615, 16, 30, "Input",ExpressionUUID->"4b2d7de4-d679-4167-b4c3-8acc2c2f3f62"],
+Cell[13401, 381, 274, 3, 34, "Output",ExpressionUUID->"0737b4e4-b1d8-43c8-9395-6e1c0b85868a"]
+}, Open  ]],
+Cell[13690, 387, 412, 11, 35, "Text",ExpressionUUID->"c3efb9f3-dd2c-438d-955a-c7d35dd2d174"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[14139, 403, 228, 4, 54, "Subsection",ExpressionUUID->"0fae1c0e-6c19-4ba7-ba31-701bfbabac13"],
+Cell[14370, 409, 908, 21, 30, "Input",ExpressionUUID->"cb22b8dd-e3d4-4d2f-88e6-c99e528917a6"],
+Cell[CellGroupData[{
+Cell[15303, 434, 360, 7, 30, "Input",ExpressionUUID->"b8b8c499-63be-453c-ba07-a3784c0000b2"],
+Cell[15666, 443, 440, 10, 24, "Message",ExpressionUUID->"61bc0a1d-4e68-4691-af26-185278116d36"],
+Cell[16109, 455, 440, 10, 24, "Message",ExpressionUUID->"d2c74e5d-c0fb-4f5c-b14a-65dc01bf4c07"],
+Cell[16552, 467, 440, 10, 24, "Message",ExpressionUUID->"484f6af5-3b87-4144-a282-92124765969b"],
+Cell[16995, 479, 475, 10, 24, "Message",ExpressionUUID->"544a5645-3aa3-430c-bc1a-56ec888e96db"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[17507, 494, 615, 16, 30, "Input",ExpressionUUID->"805bef66-746e-40d0-b173-620173a7c68a"],
+Cell[18125, 512, 298, 4, 34, "Output",ExpressionUUID->"3c2a64cc-a323-4ef2-9629-35546e7d6480"]
+}, Open  ]],
+Cell[18438, 519, 412, 11, 35, "Text",ExpressionUUID->"ac5ace15-5bd2-4128-8d7f-f46f323829da"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[18899, 536, 214, 4, 67, "Section",ExpressionUUID->"f74e6f32-e2c4-4f8c-8039-e3db3d7aadc2"],
+Cell[19116, 542, 447, 9, 58, "Text",ExpressionUUID->"1e8bd51a-e267-49c2-9e51-a48c4fac232d"],
+Cell[CellGroupData[{
+Cell[19588, 555, 176, 3, 54, "Subsection",ExpressionUUID->"5bb6a3cd-dace-4c87-9706-1174f1562edd"],
+Cell[19767, 560, 413, 7, 30, "Input",ExpressionUUID->"c32897f2-3808-41ca-b8a1-ce08bd5c7a3d"],
+Cell[20183, 569, 172, 4, 30, "Input",ExpressionUUID->"89a27110-46be-4bf3-9448-63a178ce62a9"],
+Cell[20358, 575, 172, 4, 30, "Input",ExpressionUUID->"3f91202a-2511-4224-bcc7-7d7b1a6f1a45"],
+Cell[20533, 581, 173, 4, 30, "Input",ExpressionUUID->"aa632dc5-1dd6-4958-a674-7ba9df5ea4d5"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[20743, 590, 168, 3, 54, "Subsection",ExpressionUUID->"cdcfcaf6-7239-4315-b9e5-6540dfca06e3"],
+Cell[20914, 595, 358, 7, 35, "Text",ExpressionUUID->"bf0441c7-0c77-4f31-9ea6-a6e1fdda2189"],
+Cell[CellGroupData[{
+Cell[21297, 606, 816, 21, 30, "Input",ExpressionUUID->"b76b607c-a05d-4c5c-8c39-03d68d2949e3"],
+Cell[22116, 629, 318, 4, 34, "Output",ExpressionUUID->"425a1e32-030c-4db4-8ded-f740933704f6"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[22471, 638, 886, 22, 30, "Input",ExpressionUUID->"7d1ad413-a9e4-47d9-b624-e63528c1d45f"],
+Cell[23360, 662, 340, 4, 34, "Output",ExpressionUUID->"4b53cf66-d64f-43d9-8341-74f97cebf07f"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[23737, 671, 858, 21, 30, "Input",ExpressionUUID->"89ea6a5f-a8a8-428f-8108-de822e783f87"],
+Cell[24598, 694, 341, 4, 34, "Output",ExpressionUUID->"46b69ec2-dd4f-4548-81be-9c50191a3808"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[24976, 703, 812, 20, 30, "Input",ExpressionUUID->"517bd17b-a16b-493f-9df0-65656334ca49"],
+Cell[25791, 725, 343, 4, 34, "Output",ExpressionUUID->"8e795574-2fc7-43d3-b0ce-1de769b70f37"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
